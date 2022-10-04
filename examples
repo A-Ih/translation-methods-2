@@ -8,3 +8,7 @@ lambda x,lambdaa: x + lambdaa
 lambda    with      , a , lot      ,      of        whitespaces : hello
 lambda long,variable,names: dont + actually * matter
         lambda with,leading,spaces: is + also +(okay)
+lambda with: a * (lot + ((of *((parens)) + and * (some)) + more))
+lambda with: a*chain*of  *multiplications*  and*an + addition
+lambda with: a + chain*of  + alternating*additions + and*multiplications
+lambda that,wont: (break+my )+cool*( parser+regardless  ) +(  of+its  )+ complexity
