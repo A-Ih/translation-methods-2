@@ -11,7 +11,7 @@ struct Tree {
 inline std::size_t TreeToDotHelper(std::ostream& os, const Tree* node,
                                    std::size_t& id) {
   std::size_t thisId = ++id;
-  os << "n" << thisId << " [label=" << node->node << "]\n";
+  os << "n" << thisId << " [label=\"" << node->node << "\"]\n";
   for (auto& child : node->children) {
     auto childId = TreeToDotHelper(os, child.get(), id);
     os << "n" << thisId << " -> "

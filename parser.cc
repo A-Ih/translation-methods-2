@@ -142,7 +142,7 @@ Parser::TPtr Parser::TermPrime() {
   std::vector<TPtr> children;
   switch (auto [type, value] = lex.getToken(); type) {
   case TokenType::ASTERISK: {
-    children.emplace_back(ParseToken(TokenType::PLUS));
+    children.emplace_back(ParseToken(TokenType::ASTERISK));
     children.emplace_back(Factor());
     children.emplace_back(TermPrime());
     break;

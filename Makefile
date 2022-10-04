@@ -1,6 +1,7 @@
 srcs = \
 	   defs.hh \
 	   lexer.hh \
+	   lexer.cc \
 	   tree.hh \
 	   parser.hh \
 	   parser.cc \
@@ -16,11 +17,22 @@ CFLAGS= \
 		-g \
 		-std=c++20
 
-all: FORCE
-	$(CC) $(CFLAGS) main.cc parser.cc -o parser
+all: format parser
+
+
+parser:
+	$(CC) $(CFLAGS) main.cc lexer.cc parser.cc -o parser
 
 format: FORCE
 	clang-format -i --style=file *.hh *.cc
+
+picture: parser
+	./parser >pic.dot && \
+	dot -T svg pic.dot >pic.svg && \
+	open pic.svg
+
+clean: FORCE
+	rm parser
 
 FORCE:
 

@@ -34,7 +34,8 @@ public:
   TPtr Factor();
 
   /// This overload is useful if we want to automate the parsing and to pass
-  /// around pointers to functions
+  /// around pointers to members
+  /// (E.g. MakeParser<&Parser::ParseToken<TokenType::LAMBDA_KW>, ...>
   template <TokenType TType>
   TPtr ParseToken() {
     return ParseToken(TType);
