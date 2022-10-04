@@ -4,3 +4,4 @@ lambda x: x*x
 lambda x   : x  *x
 lambda a, b:   a + b * (c)
 lambda x,y,z: (((x*x + y*y + z*z)))
+lambda x,lambdaa: x + lambdaa

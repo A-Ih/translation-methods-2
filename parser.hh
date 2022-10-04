@@ -17,6 +17,11 @@ public:
   explicit Parser(std::shared_ptr<std::istream> streamSource)
       : lex{streamSource} {}
 
+  TPtr Parse() {
+    lex.nextToken();
+    return Declaration();
+  }
+
   TPtr ParseToken(TokenType expectedType);
   TPtr Declaration();
   TPtr Arglist();
@@ -34,8 +39,6 @@ public:
   TPtr ParseToken() {
     return ParseToken(TType);
   }
-
-
 
 private:
   LexicalAnalyzer lex;

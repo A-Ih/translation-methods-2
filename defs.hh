@@ -1,13 +1,13 @@
 #pragma once
+#include <array>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sstream>
 #include <string_view>
-#include <array>
 
 /// A marker-exception that we can catch and process
 
-class ParserException : std::runtime_error {
+class ParserException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
@@ -23,7 +23,7 @@ enum class TokenType {
   COMMA
 };
 
-inline const char* toString(TokenType type) {
+inline const char* ToString(TokenType type) {
   switch (type) {
   case TokenType::LPAREN:
     return "LPAREN";
@@ -47,38 +47,23 @@ inline const char* toString(TokenType type) {
 }
 
 inline std::ostream& operator<<(std::ostream& os, const TokenType& type) {
-  return os << toString(type);
+  return os << ToString(type);
 }
-
-/// Get Nth arg from parameter pack
-template<std::size_t N, typename Head, typename ...Tail>
-struct NthHelper {
-  static auto get(Head, Tail... tail) {
-    return NthHelper<N - 1, Tail...>(std::forward<Tail>(tail)...);
-  }
-};
-
-template<typename Head, typename ...Tail>
-struct NthHelper<0, Head, Tail...> {
-  static Head get(Head head, Tail...) {
-    return head;
-  }
-};
 
 namespace detail {
-  template <typename T>
-    std::string to_string(const T& x) {
-      std::ostringstream os;
-      os << x;
-      return os.str();
-    }
+template <typename T>
+std::string ToString(const T& x) {
+  std::ostringstream os;
+  os << x;
+  return os.str();
 }
+} // namespace detail
 
 /// Only the most recent compilers support <format> out of the box
 /// So here's my improvised implementation
 /// Replaces all `%` symbols with args
-template <typename ...Args>
-std::string my_format(std::string_view formatStr, Args&&...args) {
+template <typename... Args>
+std::string MyFormat(std::string_view formatStr, Args&&... args) {
   if constexpr (sizeof...(Args) == 0) {
     return std::string{formatStr};
   }
@@ -86,8 +71,7 @@ std::string my_format(std::string_view formatStr, Args&&...args) {
     throw std::runtime_error(
         "Number of arguments doesn't match number of replacement spots");
   }
-  auto replacements =
-      { detail::to_string(args)...};
+  auto replacements = {detail::ToString(args)...};
   auto currentReplacement = replacements.begin();
   std::ostringstream result;
   for (auto c : formatStr) {
