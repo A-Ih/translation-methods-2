@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while read line
+while read -r line
 do
     echo "Testing '$line'..."
     if echo "$line" | ./parser >/dev/null; then
@@ -11,7 +11,7 @@ do
     fi
 done <examples
 
-while read line
+while read -r line
 do
     echo "Testing '$line'..."
     if echo "$line" | ./parser >/dev/null; then
