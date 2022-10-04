@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cat examples | while read line
+while read line
 do
     echo "Testing '$line'..."
     if echo "$line" | ./parser >/dev/null; then
@@ -9,9 +9,9 @@ do
         echo "FAIL: parser failed"
         exit 1
     fi
-done
+done <examples
 
-cat invalid-examples | while read line
+while read line
 do
     echo "Testing '$line'..."
     if echo "$line" | ./parser >/dev/null; then
@@ -20,7 +20,7 @@ do
     else
         echo "OK: parser failed"
     fi
-done
+done <invalid-examples
 
 echo "==============================================================="
 echo "==========================SUCCESS=============================="
