@@ -1,0 +1,7 @@
+lambda
+lambda:
+lambda n : :
+: n
+;;; invalid token chars
+a bunch of tokens
+lambda varlist without commas: x
