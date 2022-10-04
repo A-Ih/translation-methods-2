@@ -5,3 +5,14 @@ lambda n : :
 ;;; invalid token chars
 a bunch of tokens
 lambda varlist without commas: x
+lambbda n : x*y
+lambda n:
+
+n : n + n
+a,b,c
+lambda a,b,c: a*(b*((((c)))
+lambda a,b,c: BIG_VARIABLES IN THE EXPRESSION
+lambda BIG_VAR_IN_VARLIST: x * x
+lambda bad,paren,sequence: a*(b+c*(d)+g*(k
+lambda ommitted,multiplication: a(b+c)+c(a+b)+b(a+c)
+lambda with, unparsable, tokens: 0xAB0BA + 0.1337

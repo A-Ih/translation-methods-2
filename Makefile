@@ -17,11 +17,13 @@ CFLAGS= \
 		-g \
 		-std=c++20
 
-all: format parser
-
+all: format parser test
 
 parser:
 	$(CC) $(CFLAGS) main.cc lexer.cc parser.cc -o parser
+
+test: parser
+	./test.sh
 
 format: FORCE
 	clang-format -i --style=file *.hh *.cc
@@ -32,7 +34,7 @@ picture: parser
 	open pic.svg
 
 clean: FORCE
-	rm parser
+	rm parser pic.dot pic.svg
 
 FORCE:
 

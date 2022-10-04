@@ -72,8 +72,8 @@ bool LexicalAnalyzer::isLetter(char c) {
 }
 
 void LexicalAnalyzer::nextChar() {
-  curPos++;
   if (char c; *in >> c) {
+    curPos++;
     curChar.emplace(c);
   } else if (in->eof()) {
     curChar = std::nullopt;

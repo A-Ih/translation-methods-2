@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <cassert>
 
 int main(int argc, char* argv[]) {
   std::shared_ptr<std::istream> source;

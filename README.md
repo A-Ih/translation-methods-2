@@ -113,7 +113,58 @@ Factor         "(" var     $ "*" "+" ")"
 
 TODO
 ## Задание 4: Визуализация дерева разбора
-TODO
-## Задание 5: Тесты
-TODO
+Пример использования:
 
+```
+$ ./parser >pic.dot && dot -T svg pic.dot >pic.svg && open pic.svg
+lambda n, m: n + m
+<ctrl+d to indicate end of input>
+```
+
+Либо
+
+```
+$ make picture
+lambda n, m: n + m
+<ctrl+d to indicate end of input>
+```
+
+Получившаяся картинка:
+![`lambda n, m: n + m`](./example.svg)
+
+## Задание 5: Тесты
+### Автоматические тесты
+`make test`
+### Валидные строки
+Программа должна завершиться без ошибки и вывести AST для graphviz:
+
+```
+Вход                                   Вывод
+lambda: n                              OK
+lambda  :    n                         OK
+lambda x: x*x                          OK
+lambda x   : x  *x                     OK
+lambda a, b:   a + b * (c)             OK
+lambda x,y,z: (((x*x + y*y + z*z)))    OK
+lambda x,lambdaa: x + lambdaa          OK
+```
+(Полный список тестов лежит в `./examples`)
+### Невалидные строки
+Программа должна завершиться с ошибкой и вывести соответствующее сообщение:
+
+```
+Вход                                Вывод программы (stderr)
+lambda                              Expected argument list, got `` at position 7
+lambda:                             Expected beginning of expression, got `` at
+                                    position 8
+lambda n : :                        Expected beginning of expression, got `:` at
+                                    position 12
+: n                                 Expected lambda declaration, got `:` at
+                                    position 1
+;;; invalid token chars             There are no tokens that start with `;` (at
+                                    pos 1)
+a bunch of tokens                   Expected lambda declaration, got `a` at position 1
+lambda varlist without commas: x    Expected continuation of variable list, got
+                                    `without` at position 16
+```
+(полный список тестов лежит в `./invalid-examples`)

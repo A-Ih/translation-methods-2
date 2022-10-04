@@ -5,3 +5,6 @@ lambda x   : x  *x
 lambda a, b:   a + b * (c)
 lambda x,y,z: (((x*x + y*y + z*z)))
 lambda x,lambdaa: x + lambdaa
+lambda    with      , a , lot      ,      of        whitespaces : hello
+lambda long,variable,names: dont + actually * matter
+        lambda with,leading,spaces: is + also +(okay)

@@ -6,7 +6,7 @@ namespace {
 void expect(const LexicalAnalyzer& lex, std::string_view expected) {
   auto [type, value] = lex.getToken();
   throw ParserException(MyFormat("Expected %, got `%` at position %", expected,
-                                 value, lex.getPos()));
+                                 value, lex.getPos() - value.size()));
 }
 } // namespace
 
@@ -15,7 +15,7 @@ Parser::TPtr Parser::ParseToken(TokenType expectedType) {
   if (type != expectedType) {
     throw ParserException(
         MyFormat("Expected token of type %, got `%` of type % at position %",
-                 expectedType, value, type, lex.getPos()));
+                 expectedType, value, type, lex.getPos() - value.size()));
   }
   lex.nextToken();
   return std::make_unique<Tree>(Tree{std::move(value), {}});
