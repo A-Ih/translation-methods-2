@@ -1,4 +1,4 @@
-srcs = \
+SRCS = \
 	   defs.hh \
 	   lexer.hh \
 	   lexer.cc \
@@ -9,7 +9,6 @@ srcs = \
 
 
 CC=clang++
-# clang 13 doesn't support <format>
 CFLAGS= \
 		-Wall \
 		-static \
@@ -26,7 +25,7 @@ test: parser
 	./test.sh
 
 format: FORCE
-	clang-format -i --style=file *.hh *.cc
+	clang-format -i --style=file $(SRCS)
 
 picture: parser
 	./parser >pic.dot && \

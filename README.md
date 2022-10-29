@@ -16,9 +16,9 @@ Arglist -> Varlist
 Varlist -> Varlist "," var
 Varlist -> var
 
-Expression -> Expression + Term
+Expression -> Expression "+" Term
 Expression -> Term
-Term -> Term * Factor
+Term -> Term "*" Factor
 Term -> Factor
 Factor -> (E)
 Factor -> var
