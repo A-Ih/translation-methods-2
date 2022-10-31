@@ -23,10 +23,15 @@ public:
   }
 
   TPtr ParseToken(TokenType expectedType);
+
   TPtr Declaration();
   TPtr Arglist();
   TPtr Varlist();
   TPtr VarlistPrime();
+  TPtr El();
+  TPtr ElPrime();
+  TPtr Tl();
+  TPtr TlPrime();
   TPtr Expression();
   TPtr ExpressionPrime();
   TPtr Term();

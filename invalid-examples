@@ -24,3 +24,10 @@ lambda with `: `alien & characters
 lambda with,variable,named,lambda: is + prohibited + since + lambda + is + a +
 keyword
 lambda with,snEAKY: big + letters +inside + variable + name
+lambda x, y: (x & 102&) | (y & 1024)
+lambda x, y: (x & 102&) | y & 1024)
+hello
+228
+lambda 42: 42
+lambda x, 42: x + 42
+lambda x, 42: x | y | 42 + 228 * 1337 & 1024

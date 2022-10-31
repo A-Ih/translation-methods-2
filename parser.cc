@@ -28,7 +28,7 @@ Parser::TPtr Parser::Declaration() {
     children.emplace_back(ParseToken(TokenType::LAMBDA_KW));
     children.emplace_back(Arglist());
     children.emplace_back(ParseToken(TokenType::COLON));
-    children.emplace_back(Expression());
+    children.emplace_back(El());
     break;
   }
   default:
@@ -88,17 +88,91 @@ Parser::TPtr Parser::VarlistPrime() {
   return std::make_unique<Tree>(Tree{"Varlist'", std::move(children)});
 }
 
+Parser::TPtr Parser::El() {
+  std::vector<TPtr> children;
+  switch (auto [type, value] = lex.getToken(); type) {
+  case TokenType::VARIABLE:
+  case TokenType::CONSTANT:
+  case TokenType::LPAREN: {
+    children.emplace_back(Tl());
+    children.emplace_back(ElPrime());
+    break;
+  }
+  default:
+    expect(lex, "El");
+  }
+  return std::make_unique<Tree>(Tree{"El", std::move(children)});
+}
+
+Parser::TPtr Parser::ElPrime() {
+  std::vector<TPtr> children;
+  switch (auto [type, value] = lex.getToken(); type) {
+  case TokenType::VBAR: {
+    children.emplace_back(ParseToken(TokenType::VBAR));
+    children.emplace_back(Tl());
+    children.emplace_back(ElPrime());
+    break;
+  }
+  case TokenType::END:
+  case TokenType::RPAREN: {
+    // noop
+    break;
+  }
+  default:
+    expect(lex, "El'");
+  }
+  return std::make_unique<Tree>(Tree{"El'", std::move(children)});
+}
+
+Parser::TPtr Parser::Tl() {
+  std::vector<TPtr> children;
+  switch (auto [type, value] = lex.getToken(); type) {
+  case TokenType::VARIABLE:
+  case TokenType::CONSTANT:
+  case TokenType::LPAREN: {
+    children.emplace_back(Expression());
+    children.emplace_back(TlPrime());
+    break;
+  }
+  default:
+    expect(lex, "Tl");
+  }
+  return std::make_unique<Tree>(Tree{"Tl", std::move(children)});
+}
+
+Parser::TPtr Parser::TlPrime() {
+  std::vector<TPtr> children;
+  switch (auto [type, value] = lex.getToken(); type) {
+  case TokenType::AMPERSAND: {
+    children.emplace_back(ParseToken(TokenType::AMPERSAND));
+    children.emplace_back(Expression());
+    children.emplace_back(TlPrime());
+    break;
+  }
+  case TokenType::END:
+  case TokenType::VBAR:
+  case TokenType::RPAREN: {
+    // noop
+    break;
+  }
+  default:
+    expect(lex, "Tl'");
+  }
+  return std::make_unique<Tree>(Tree{"Tl'", std::move(children)});
+}
+
 Parser::TPtr Parser::Expression() {
   std::vector<TPtr> children;
   switch (auto [type, value] = lex.getToken(); type) {
   case TokenType::VARIABLE:
+  case TokenType::CONSTANT:
   case TokenType::LPAREN: {
     children.emplace_back(Term());
     children.emplace_back(ExpressionPrime());
     break;
   }
   default:
-    expect(lex, "beginning of expression");
+    expect(lex, "Expression");
   }
   return std::make_unique<Tree>(Tree{"Expression", std::move(children)});
 }
@@ -113,12 +187,14 @@ Parser::TPtr Parser::ExpressionPrime() {
     break;
   }
   case TokenType::END:
+  case TokenType::VBAR:
+  case TokenType::AMPERSAND:
   case TokenType::RPAREN: {
     // noop
     break;
   }
   default:
-    expect(lex, "continuation of expression");
+    expect(lex, "Expression'");
   }
   return std::make_unique<Tree>(Tree{"Expression'", std::move(children)});
 }
@@ -127,13 +203,14 @@ Parser::TPtr Parser::Term() {
   std::vector<TPtr> children;
   switch (auto [type, value] = lex.getToken(); type) {
   case TokenType::LPAREN:
+  case TokenType::CONSTANT:
   case TokenType::VARIABLE: {
     children.emplace_back(Factor());
     children.emplace_back(TermPrime());
     break;
   }
   default:
-    expect(lex, "beginning of term");
+    expect(lex, "Term");
   }
   return std::make_unique<Tree>(Tree{"Term", std::move(children)});
 }
@@ -148,13 +225,15 @@ Parser::TPtr Parser::TermPrime() {
     break;
   }
   case TokenType::END:
+  case TokenType::VBAR:
+  case TokenType::AMPERSAND:
   case TokenType::PLUS:
   case TokenType::RPAREN: {
     // noop
     break;
   }
   default:
-    expect(lex, "continuation of term");
+    expect(lex, "Term'");
   }
   return std::make_unique<Tree>(Tree{"Term'", std::move(children)});
 }
@@ -162,18 +241,22 @@ Parser::TPtr Parser::TermPrime() {
 Parser::TPtr Parser::Factor() {
   std::vector<TPtr> children;
   switch (auto [type, value] = lex.getToken(); type) {
+  case TokenType::CONSTANT: {
+    children.emplace_back(ParseToken(TokenType::CONSTANT));
+    break;
+  }
   case TokenType::VARIABLE: {
     children.emplace_back(ParseToken(TokenType::VARIABLE));
     break;
   }
   case TokenType::LPAREN: {
     children.emplace_back(ParseToken(TokenType::LPAREN));
-    children.emplace_back(Expression());
+    children.emplace_back(El());
     children.emplace_back(ParseToken(TokenType::RPAREN));
     break;
   }
   default:
-    expect(lex, "beginning of factor");
+    expect(lex, "Factor");
   }
   return std::make_unique<Tree>(Tree{"Factor", std::move(children)});
 }

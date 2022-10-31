@@ -11,17 +11,22 @@
 ```
 Declaration -> "lambda" Arglist ":" Expression
 
-Arglist -> ""
+Arglist -> eps
 Arglist -> Varlist
 Varlist -> Varlist "," var
 Varlist -> var
 
+El -> El "|" Tl
+El -> Tl
+Tl -> Tl "&" Expression
+Tl -> Expression
 Expression -> Expression "+" Term
 Expression -> Term
 Term -> Term "*" Factor
 Term -> Factor
-Factor -> (E)
+Factor -> (El)
 Factor -> var
+Factor -> const
 ```
 
 #### Описание нетерминалов
@@ -30,9 +35,10 @@ Factor -> var
 Declaration     Описание лямбда функции в Python
 Arglist         Список аргументов функции (может быть пустым)
 Varlist         Непустой список comma-separated переменных
-Expression      Арифметическое выражение с переменными (без чисел, с операциями + и
-                *)
-Term            Терм в арифметическом выражении
+El              Левая часть побитовой дизъюнкции
+Tl              Левая часть побитовой конъюнкции
+Expression      Левое слагаемое в арифметическом выражении
+Term            Левый множитель в арифметическом выражении
 Factor          Множитель в арифметическом выражении
 ```
 
@@ -48,14 +54,21 @@ Arglist -> ""
 ~ Varlist' -> "," var Varlist'
 + Varlist' -> eps
 
+~ El -> Tl El'
+~ El' -> "|" Tl El'
++ El' -> eps
+~ Tl -> Expression Tl'
+~ Tl' -> "&" Expression Tl'
++ Tl' -> eps
 ~ Expression -> Term Expression'
 ~ Expression' -> "+" Term Expression'
-+ Expression' -> ""
++ Expression' -> eps
 ~ Term -> Factor Term'
 ~ Term' -> "*" Factor Term'
-+ Term' -> ""
-Factor -> (E)
++ Term' -> eps
+Factor -> (El)
 Factor -> var
+Factor -> const
 ```
 (`~` - измененная строка, `+` - новая строка, по аналогии с `diff`)
 
@@ -68,10 +81,14 @@ Declaration     -//-
 Arglist         -//-
 Varlist         -//-
 Varlist'        Продолжение списка из переменных
+El              -//-
+El'             То, что находится справа от левого операнда дизъюнкции
+Tl              -//-
+Tl'             То, что находится справа от левого операнда конъюнкции
 Expression      -//-
-Expression'     Продолжение арифметического выражения
+Expression'     То, что находится справа от левого операнда суммы
 Term            -//-
-Term'           Продолжение терма (т.е. операнда суммирования)
+Term'           То, что находится справа от левого операнда умножения
 Factor          -//-
 ```
 ## Задание 2: Лексический анализатор
@@ -80,9 +97,12 @@ Factor          -//-
 "("         LPAREN
 ")"         RPAREN
 $           END
+"|"         VBAR
+"&"         AMPERSAND
 "+"         PLUS
 "*"         ASTERISK
 var         VARIABLE
+const       CONSTANT
 "lambda"    LAMBDA_KW
 ":"         COLON
 ","         COMMA
@@ -91,26 +111,32 @@ var         VARIABLE
 ## Задание 3: Синтаксический анализатор
 ### Таблица FIRST и FOLLOW исходной грамматики
 ```
-Нетерминал       FIRST        FOLLOW
-Declaration      "lambda"     $
-Arglist          var eps      ":"
-Varlist          var          ":" ","
-Expression       "(" var      $ "+" ")"
-Term             "(" var      $ "*" ")"
-Factor           "(" var      $ ")"
+Нетерминал      FIRST             FOLLOW
+Declaration     "lambda"          $
+Arglist         var eps           ":"
+Varlist         var               ":" ","
+El              "(" var const     $ "|" ")"
+Tl              "(" var const     $ "&" "|" ")"
+Expression      "(" var const     $ "+" "&" "|" ")"
+Term            "(" var const     $ "*" "+" "&" "|" ")"
+Factor          "(" var const     $ "*" "+" "&" "|" ")"
 ```
 ### Таблица FIRST и FOLLOW модифицированной грамматики
 ```
-Нетерминал     FIRST       FOLLOW
-Declaration    "lambda"    $
-Arglist        var eps     ":"
-Varlist        var         ":"
-Varlist'       "," eps     ":"
-Expression     "(" var     $ ")"
-Expression'    "+" eps     $ ")"
-Term           "(" var     $ "+" ")"
-Term'          "*" eps     $ "+" ")"
-Factor         "(" var     $ "*" "+" ")"
+Нетерминал      FIRST            FOLLOW
+Declaration     "lambda"         $
+Arglist         var eps          ":"
+Varlist         var              ":"
+Varlist'        "," eps          ":"
+El              "(" var const    $ ")"
+El'             "|" eps          $ ")"
+Tl              "(" var const    $ "|" ")"
+Tl'             "&" eps          $ "|" ")"
+Expression      "(" var const    $ "&" "|" ")"
+Expression'     "+" eps          $ "&" "|" ")"
+Term            "(" var const    $ "+" "&" "|" ")"
+Term'           "*" eps          $ "+" "&" "|" ")"
+Factor          "(" var const    $ "*" "+" "&" "|" ")"
 ```
 
 Как собрать бинарник парсера (принимает на вход выражение и выдаёт дерево
@@ -126,20 +152,17 @@ make parser
 
 ```
 $ ./parser >pic.dot && dot -T svg pic.dot >pic.svg && open pic.svg
-lambda n, m: n + m
+lambda n, m: n + m | 42 * (n)
 <ctrl+d to indicate end of input>
 ```
-
 Либо
 
 ```
 $ make picture
-lambda n, m: n + m
+lambda n, m: n + m | 42 * (n)
 <ctrl+d to indicate end of input>
 ```
-
-Получившаяся картинка:
-![`lambda n, m: n + m`](./example.svg)
+![`lambda n, m: n + m | 42 * (n)`](./example.svg)
 
 ## Задание 5: Тесты
 ### Автоматические тесты
@@ -157,6 +180,7 @@ lambda x   : x  *x                     OK
 lambda a, b:   a + b * (c)             OK
 lambda x,y,z: (((x*x + y*y + z*z)))    OK
 lambda x,lambdaa: x + lambdaa          OK
+lambda n, m: n + m | 42 * (n)          OK
 ```
 (Полный список тестов лежит в `./examples`)
 ### Невалидные строки
@@ -176,5 +200,7 @@ lambda n : :                        Expected beginning of expression, got `:` at
 a bunch of tokens                   Expected lambda declaration, got `a` at position 1
 lambda varlist without commas: x    Expected continuation of variable list, got
                                     `without` at position 16
+
+lambda x, y: (x & 102&) | (y & 32)  Expected Expression, got `)` at position 23
 ```
 (полный список тестов лежит в `./invalid-examples`)

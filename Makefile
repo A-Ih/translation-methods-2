@@ -11,7 +11,7 @@ SRCS = \
 CC=clang++
 CFLAGS= \
 		-Wall \
-		-static \
+		-fsanitize=address,leak,undefined \
 		-O2 \
 		-g \
 		-std=c++20

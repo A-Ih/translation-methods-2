@@ -18,6 +18,7 @@ public:
 private:
   void nextChar();
   static bool isLetter(char c);
+  static bool isDigit(char c);
 
 private:
   /// NOTE: we use shared_ptr, because it has an ability to store a type-erased

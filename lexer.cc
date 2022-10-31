@@ -23,6 +23,14 @@ void LexicalAnalyzer::nextToken() {
     nextChar();
     curToken = {TokenType::RPAREN, ")"};
     break;
+  case '|':
+    nextChar();
+    curToken = {TokenType::VBAR, "|"};
+    break;
+  case '&':
+    nextChar();
+    curToken = {TokenType::AMPERSAND, "&"};
+    break;
   case '+':
     nextChar();
     curToken = {TokenType::PLUS, "+"};
@@ -39,6 +47,24 @@ void LexicalAnalyzer::nextToken() {
     nextChar();
     curToken = {TokenType::COMMA, ","};
     break;
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9': {
+    curToken.value.clear();
+    while (curChar && isDigit(*curChar)) {
+      curToken.value.push_back(*curChar);
+      nextChar();
+    }
+    curToken.type = TokenType::CONSTANT;
+    break;
+  }
   default: {
     if (!isLetter(*curChar)) {
       throw ParserException(
@@ -69,6 +95,10 @@ std::size_t LexicalAnalyzer::getPos() const {
 
 bool LexicalAnalyzer::isLetter(char c) {
   return 'a' <= c && c <= 'z';
+}
+
+bool LexicalAnalyzer::isDigit(char c) {
+  return '0' <= c && c <= '9';
 }
 
 void LexicalAnalyzer::nextChar() {

@@ -15,9 +15,12 @@ enum class TokenType {
   LPAREN,
   RPAREN,
   END,
+  VBAR,
+  AMPERSAND,
   PLUS,
   ASTERISK,
   VARIABLE,
+  CONSTANT,
   LAMBDA_KW,
   COLON,
   COMMA
@@ -31,12 +34,18 @@ inline const char* ToString(TokenType type) {
     return "RPAREN";
   case TokenType::END:
     return "END";
+  case TokenType::VBAR:
+    return "VBAR";
+  case TokenType::AMPERSAND:
+    return "AMPERSAND";
   case TokenType::PLUS:
     return "PLUS";
   case TokenType::ASTERISK:
     return "ASTERISK";
   case TokenType::VARIABLE:
     return "VARIABLE";
+  case TokenType::CONSTANT:
+    return "CONSTANT";
   case TokenType::LAMBDA_KW:
     return "LAMBDA_KW";
   case TokenType::COLON:
