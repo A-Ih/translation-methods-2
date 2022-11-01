@@ -32,19 +32,12 @@ public:
   TPtr ElPrime();
   TPtr Tl();
   TPtr TlPrime();
+  TPtr Fl();
   TPtr Expression();
   TPtr ExpressionPrime();
   TPtr Term();
   TPtr TermPrime();
   TPtr Factor();
-
-  /// This overload is useful if we want to automate the parsing and to pass
-  /// around pointers to members
-  /// (E.g. MakeParser<&Parser::ParseToken<TokenType::LAMBDA_KW>, ...>
-  template <TokenType TType>
-  TPtr ParseToken() {
-    return ParseToken(TType);
-  }
 
 private:
   LexicalAnalyzer lex;

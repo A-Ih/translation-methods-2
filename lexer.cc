@@ -2,7 +2,6 @@
 
 LexicalAnalyzer::LexicalAnalyzer(std::shared_ptr<std::istream> source)
     : in{std::move(source)} {
-  // source->unsetf(std::ios_base::skipws);
   nextChar();
 }
 
@@ -30,6 +29,10 @@ void LexicalAnalyzer::nextToken() {
   case '&':
     nextChar();
     curToken = {TokenType::AMPERSAND, "&"};
+    break;
+  case '~':
+    nextChar();
+    curToken = {TokenType::TILDA, "~"};
     break;
   case '+':
     nextChar();
@@ -102,12 +105,12 @@ bool LexicalAnalyzer::isDigit(char c) {
 }
 
 void LexicalAnalyzer::nextChar() {
-  if (char c; *in >> c) {
+  if (char c; in && *in >> c) {
     curPos++;
     curChar.emplace(c);
   } else if (in->eof()) {
     curChar = std::nullopt;
-    curToken = {TokenType::END, ""};
+    in.reset();
   } else {
     throw ParserException(MyFormat(
         "Error encountered while reading character at position %", curPos));

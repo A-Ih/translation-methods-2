@@ -5,8 +5,9 @@
 namespace {
 void expect(const LexicalAnalyzer& lex, std::string_view expected) {
   auto [type, value] = lex.getToken();
-  throw ParserException(MyFormat("Expected %, got `%` at position %", expected,
-                                 value, lex.getPos() - value.size()));
+  throw ParserException(
+      MyFormat("Expected %, got `%` of type '%' at position %", expected, value,
+               type, lex.getPos() - value.size()));
 }
 } // namespace
 
@@ -93,6 +94,7 @@ Parser::TPtr Parser::El() {
   switch (auto [type, value] = lex.getToken(); type) {
   case TokenType::VARIABLE:
   case TokenType::CONSTANT:
+  case TokenType::TILDA:
   case TokenType::LPAREN: {
     children.emplace_back(Tl());
     children.emplace_back(ElPrime());
@@ -130,7 +132,13 @@ Parser::TPtr Parser::Tl() {
   case TokenType::VARIABLE:
   case TokenType::CONSTANT:
   case TokenType::LPAREN: {
-    children.emplace_back(Expression());
+    children.emplace_back(Fl());
+    children.emplace_back(TlPrime());
+    break;
+  }
+  case TokenType::TILDA: {
+    children.emplace_back(ParseToken(TokenType::TILDA));
+    children.emplace_back(Fl());
     children.emplace_back(TlPrime());
     break;
   }
@@ -145,7 +153,7 @@ Parser::TPtr Parser::TlPrime() {
   switch (auto [type, value] = lex.getToken(); type) {
   case TokenType::AMPERSAND: {
     children.emplace_back(ParseToken(TokenType::AMPERSAND));
-    children.emplace_back(Expression());
+    children.emplace_back(Fl());
     children.emplace_back(TlPrime());
     break;
   }
@@ -159,6 +167,26 @@ Parser::TPtr Parser::TlPrime() {
     expect(lex, "Tl'");
   }
   return std::make_unique<Tree>(Tree{"Tl'", std::move(children)});
+}
+
+Parser::TPtr Parser::Fl() {
+  std::vector<TPtr> children;
+  switch (auto [type, value] = lex.getToken(); type) {
+  case TokenType::VARIABLE:
+  case TokenType::CONSTANT:
+  case TokenType::LPAREN: {
+    children.emplace_back(Expression());
+    break;
+  }
+  case TokenType::TILDA: {
+    children.emplace_back(ParseToken(TokenType::TILDA));
+    children.emplace_back(Fl());
+    break;
+  }
+  default:
+    expect(lex, "Fl");
+  }
+  return std::make_unique<Tree>(Tree{"Fl", std::move(children)});
 }
 
 Parser::TPtr Parser::Expression() {

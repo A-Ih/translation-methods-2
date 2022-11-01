@@ -9,7 +9,7 @@
 `RPAREN`, и "lambda" вместо `LAMBDA_KW`, `var` вместо `VARIABLE`)
 ### Исходная грамматика
 ```
-Declaration -> "lambda" Arglist ":" Expression
+Declaration -> "lambda" Arglist ":" El
 
 Arglist -> eps
 Arglist -> Varlist
@@ -19,7 +19,9 @@ Varlist -> var
 El -> El "|" Tl
 El -> Tl
 Tl -> Tl "&" Expression
-Tl -> Expression
+Tl -> Fl
+Fl -> "~" Fl
+Fl -> Expression
 Expression -> Expression "+" Term
 Expression -> Term
 Term -> Term "*" Factor
@@ -37,6 +39,7 @@ Arglist         Список аргументов функции (может б�
 Varlist         Непустой список comma-separated переменных
 El              Левая часть побитовой дизъюнкции
 Tl              Левая часть побитовой конъюнкции
+Fl              То, от чего можно взять побитовое "не"
 Expression      Левое слагаемое в арифметическом выражении
 Term            Левый множитель в арифметическом выражении
 Factor          Множитель в арифметическом выражении
@@ -46,31 +49,32 @@ Factor          Множитель в арифметическом выраже�
 В исходной грамматике есть левая рекурсия, избавимся от неё:
 
 ```
-Declaration -> "lambda" Arglist ":" Expression
+Declaration -> "lambda" Arglist ":" El
 
 Arglist -> Varlist
 Arglist -> ""
-~ Varlist -> var Varlist'
-~ Varlist' -> "," var Varlist'
-+ Varlist' -> eps
+Varlist -> var Varlist'
+Varlist' -> "," var Varlist'
+Varlist' -> eps
 
-~ El -> Tl El'
-~ El' -> "|" Tl El'
-+ El' -> eps
-~ Tl -> Expression Tl'
-~ Tl' -> "&" Expression Tl'
-+ Tl' -> eps
-~ Expression -> Term Expression'
-~ Expression' -> "+" Term Expression'
-+ Expression' -> eps
-~ Term -> Factor Term'
-~ Term' -> "*" Factor Term'
-+ Term' -> eps
+El -> Tl El'
+El' -> "|" Tl El'
+El' -> eps
+Tl -> Fl Tl'
+Tl' -> "&" Fl Tl'
+Tl' -> eps
+Fl -> "~" Fl
+Fl -> Expression
+Expression -> Term Expression'
+Expression' -> "+" Term Expression'
+Expression' -> eps
+Term -> Factor Term'
+Term' -> "*" Factor Term'
+Term' -> eps
 Factor -> (El)
 Factor -> var
 Factor -> const
 ```
-(`~` - измененная строка, `+` - новая строка, по аналогии с `diff`)
 
 #### Описание нетерминалов
 Запись `-//-` значит "ditto":
@@ -85,6 +89,7 @@ El              -//-
 El'             То, что находится справа от левого операнда дизъюнкции
 Tl              -//-
 Tl'             То, что находится справа от левого операнда конъюнкции
+Fl              -//-
 Expression      -//-
 Expression'     То, что находится справа от левого операнда суммы
 Term            -//-
@@ -99,6 +104,7 @@ Factor          -//-
 $           END
 "|"         VBAR
 "&"         AMPERSAND
+"~"         Tilda
 "+"         PLUS
 "*"         ASTERISK
 var         VARIABLE
@@ -111,32 +117,34 @@ const       CONSTANT
 ## Задание 3: Синтаксический анализатор
 ### Таблица FIRST и FOLLOW исходной грамматики
 ```
-Нетерминал      FIRST             FOLLOW
-Declaration     "lambda"          $
-Arglist         var eps           ":"
-Varlist         var               ":" ","
-El              "(" var const     $ "|" ")"
-Tl              "(" var const     $ "&" "|" ")"
-Expression      "(" var const     $ "+" "&" "|" ")"
-Term            "(" var const     $ "*" "+" "&" "|" ")"
-Factor          "(" var const     $ "*" "+" "&" "|" ")"
+Нетерминал      FIRST                FOLLOW
+Declaration     "lambda"             $
+Arglist         var eps              ":"
+Varlist         var                  ":" ","
+El              "(" var const "~"    $ "|" ")"
+Tl              "(" var const "~"    $ "&" "|" ")"
+Fl              "(" var const "~"    $ "&" "|" ")"
+Expression      "(" var const        $ "+" "&" "|" ")"
+Term            "(" var const        $ "*" "+" "&" "|" ")"
+Factor          "(" var const        $ "*" "+" "&" "|" ")"
 ```
 ### Таблица FIRST и FOLLOW модифицированной грамматики
 ```
-Нетерминал      FIRST            FOLLOW
-Declaration     "lambda"         $
-Arglist         var eps          ":"
-Varlist         var              ":"
-Varlist'        "," eps          ":"
-El              "(" var const    $ ")"
-El'             "|" eps          $ ")"
-Tl              "(" var const    $ "|" ")"
-Tl'             "&" eps          $ "|" ")"
-Expression      "(" var const    $ "&" "|" ")"
-Expression'     "+" eps          $ "&" "|" ")"
-Term            "(" var const    $ "+" "&" "|" ")"
-Term'           "*" eps          $ "+" "&" "|" ")"
-Factor          "(" var const    $ "*" "+" "&" "|" ")"
+Нетерминал      FIRST               FOLLOW
+Declaration     "lambda"            $
+Arglist         var eps             ":"
+Varlist         var                 ":"
+Varlist'        "," eps             ":"
+El              "(" var const "~"   $ ")"
+El'             "|" eps             $ ")"
+Tl              "(" var const "~"   $ "|" ")"
+Tl'             "&" eps             $ "|" ")"
+Fl              "(" var const "~"   $ "&" "|" ")"
+Expression      "(" var const       $ "&" "|" ")"
+Expression'     "+" eps             $ "&" "|" ")"
+Term            "(" var const       $ "+" "&" "|" ")"
+Term'           "*" eps             $ "+" "&" "|" ")"
+Factor          "(" var const       $ "*" "+" "&" "|" ")"
 ```
 
 Как собрать бинарник парсера (принимает на вход выражение и выдаёт дерево
@@ -159,10 +167,10 @@ lambda n, m: n + m | 42 * (n)
 
 ```
 $ make picture
-lambda n, m: n + m | 42 * (n)
+lambda n, m: n + m | ~42 * (n)
 <ctrl+d to indicate end of input>
 ```
-![`lambda n, m: n + m | 42 * (n)`](./example.svg)
+![`lambda n, m: n + m | ~42 * (n)`](./example.svg)
 
 ## Задание 5: Тесты
 ### Автоматические тесты
@@ -172,15 +180,15 @@ lambda n, m: n + m | 42 * (n)
 Программа должна завершиться без ошибки и вывести AST для graphviz:
 
 ```
-Вход                                   Вывод
-lambda: n                              OK
-lambda  :    n                         OK
-lambda x: x*x                          OK
-lambda x   : x  *x                     OK
-lambda a, b:   a + b * (c)             OK
-lambda x,y,z: (((x*x + y*y + z*z)))    OK
-lambda x,lambdaa: x + lambdaa          OK
-lambda n, m: n + m | 42 * (n)          OK
+Вход                                    Вывод
+lambda: n                               OK
+lambda  :    n                          OK
+lambda x: x*x                           OK
+lambda x   : x  *x                      OK
+lambda a, b:   a + b * (c)              OK
+lambda x,y,z: (((x*x + y*y + z*z)))     OK
+lambda x,lambdaa: x + lambdaa           OK
+lambda n, m: n + m | ~42 * (n)          OK
 ```
 (Полный список тестов лежит в `./examples`)
 ### Невалидные строки
@@ -188,19 +196,14 @@ lambda n, m: n + m | 42 * (n)          OK
 
 ```
 Вход                                Вывод программы (stderr)
-lambda                              Expected argument list, got `` at position 7
-lambda:                             Expected beginning of expression, got `` at
-                                    position 8
-lambda n : :                        Expected beginning of expression, got `:` at
-                                    position 12
-: n                                 Expected lambda declaration, got `:` at
-                                    position 1
-;;; invalid token chars             There are no tokens that start with `;` (at
-                                    pos 1)
-a bunch of tokens                   Expected lambda declaration, got `a` at position 1
-lambda varlist without commas: x    Expected continuation of variable list, got
-                                    `without` at position 16
+lambda                              Expected argument list, got `` of type 'END' at position 6
+lambda:                             Expected El, got `` of type 'END' at position 7
+lambda n : :                        Expected El, got `:` of type 'COLON' at position 11
+: n                                 Expected lambda declaration, got `:` of type 'COLON' at position 1
+;;; invalid token chars             There are no tokens that start with `;` (at pos 1)
+a bunch of tokens                   Expected lambda declaration, got `a` of type 'VARIABLE' at position 1
+lambda varlist without commas: x    Expected continuation of variable list, got `without` of type 'VARIABLE' at position 16
 
-lambda x, y: (x & 102&) | (y & 32)  Expected Expression, got `)` at position 23
+lambda x, y: (x & 102&) | (y & 32)  Expected Fl, got `)` of type 'RPAREN' at position 23
 ```
 (полный список тестов лежит в `./invalid-examples`)

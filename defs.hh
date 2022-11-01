@@ -17,6 +17,7 @@ enum class TokenType {
   END,
   VBAR,
   AMPERSAND,
+  TILDA,
   PLUS,
   ASTERISK,
   VARIABLE,
@@ -38,6 +39,8 @@ inline const char* ToString(TokenType type) {
     return "VBAR";
   case TokenType::AMPERSAND:
     return "AMPERSAND";
+  case TokenType::TILDA:
+    return "TILDA";
   case TokenType::PLUS:
     return "PLUS";
   case TokenType::ASTERISK:
@@ -95,7 +98,7 @@ std::string MyFormat(std::string_view formatStr, Args&&... args) {
 }
 
 struct Token {
-  TokenType type;
+  TokenType type{TokenType::END};
   /// For `$` value is equal to empty string
-  std::string value;
+  std::string value{};
 };

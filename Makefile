@@ -33,7 +33,7 @@ picture: parser
 	open pic.svg
 
 clean: FORCE
-	rm parser pic.dot pic.svg
+	rm -f parser pic.dot pic.svg
 
 FORCE:
 

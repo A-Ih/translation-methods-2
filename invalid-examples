@@ -31,3 +31,12 @@ hello
 lambda 42: 42
 lambda x, 42: x + 42
 lambda x, 42: x | y | 42 + 228 * 1337 & 1024
+lambda x: ~+42 & ~x | 24
+lambda x: ~x~
+lambda x: x~
+lambda x, y: (~x & 42 ~ y)
+lambda: ~42+~5
+lambda x: ~42 & ~x | 24~
+lambda x: ~
+lambda: 42~+5
+lambda: ~~~~42+~~~x
